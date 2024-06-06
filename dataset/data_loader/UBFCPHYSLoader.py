@@ -22,7 +22,9 @@ class UBFCPHYSLoader(BaseLoader):
     """The data loader for the UBFC-PHYS dataset."""
 
     def __init__(self, name, data_path, config_data):
+        print("===UBFCPHYSLoader def init===")
         """Initializes an UBFC-PHYS dataloader.
+        
             Args:
                 data_path(str): path of a folder which stores raw video and bvp data.
                 e.g. data_path should be "RawData" for below dataset structure:
@@ -58,9 +60,12 @@ class UBFCPHYSLoader(BaseLoader):
                 config_data(CfgNode): data settings(ref:config.py).
         """
         self.filtering = config_data.FILTERING
+        print("===name===data_path===config_data===")
+        print(name,data_path,config_data)
         super().__init__(name, data_path, config_data)
 
     def get_raw_data(self, data_path):
+        print("===get_raw_data===")
         """Returns data directories under the path(For UBFC-PHYS dataset)."""
         data_dirs = glob.glob(data_path + os.sep + "s*" + os.sep + "*.avi")
         if not data_dirs:
@@ -70,6 +75,7 @@ class UBFCPHYSLoader(BaseLoader):
         return dirs
 
     def split_raw_data(self, data_dirs, begin, end):
+        print("===split_raw_data===")
         """Returns a subset of data dirs, split with begin and end values."""
         if begin == 0 and end == 1:  # return the full directory if begin == 0 and end == 1
             return data_dirs
@@ -84,6 +90,7 @@ class UBFCPHYSLoader(BaseLoader):
         return data_dirs_new
 
     def preprocess_dataset_subprocess(self, data_dirs, config_preprocess, i, file_list_dict):
+        print("===preprocess_dataset_subprocess===")
         """   invoked by preprocess_dataset for multi_process.   """
         filename = os.path.split(data_dirs[i]['path'])[-1]
         saved_filename = data_dirs[i]['index']
@@ -106,6 +113,7 @@ class UBFCPHYSLoader(BaseLoader):
         file_list_dict[i] = input_name_list
 
     def load_preprocessed_data(self):
+        print("===load_preprocessed_data===")
         """ Loads the preprocessed data listed in the file list.
 
         Args:
@@ -113,22 +121,40 @@ class UBFCPHYSLoader(BaseLoader):
         Returns:
             None
         """
+
+        print("===self.file_list_path===")
+        print(self.file_list_path)
+
         file_list_path = self.file_list_path  # get list of files in
         file_list_df = pd.read_csv(file_list_path)
         base_inputs = file_list_df['input_files'].tolist()
         filtered_inputs = []
 
+        # この辺の様子がおかしい
         for input in base_inputs:
+            print("===input===")
+            print(input)
             input_name = input.split(os.sep)[-1].split('.')[0].rsplit('_', 1)[0]
+
+
+
+
             if self.filtering.USE_EXCLUSION_LIST and input_name in self.filtering.EXCLUSION_LIST :
+                print("=self.filtering.USE_EXCLUSION_LIST and input_name in self.filtering.EXCLUSION_LIST")
                 # Skip loading the input as it's in the exclusion list
                 continue
             if self.filtering.SELECT_TASKS and not any(task in input_name for task in self.filtering.TASK_LIST):
+                print("=self.filtering.SELECT_TASKS and not any(task in input_name for task in self.filtering.TASK_LIST")
                 # Skip loading the input as it's not in the task list
                 continue
             filtered_inputs.append(input)
 
+        print("===filtered_inputs===")
+        print(filtered_inputs)
+
         if not filtered_inputs:
+            print("===self.dataset_name===")
+            print(self.dataset_name)
             raise ValueError(self.dataset_name + ' dataset loading data error!')
         
         filtered_inputs = sorted(filtered_inputs)  # sort input file name list
@@ -139,6 +165,7 @@ class UBFCPHYSLoader(BaseLoader):
 
     @staticmethod
     def read_video(video_file):
+        print("===read_video===")
         """Reads a video file, returns frames(T,H,W,3) """
         VidObj = cv2.VideoCapture(video_file)
         VidObj.set(cv2.CAP_PROP_POS_MSEC, 0)
@@ -153,6 +180,7 @@ class UBFCPHYSLoader(BaseLoader):
 
     @staticmethod
     def read_wave(bvp_file):
+        print("===bvp_file===")
         """Reads a bvp signal file."""
         bvp = []
         with open(bvp_file, "r") as f:

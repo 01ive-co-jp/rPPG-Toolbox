@@ -28,7 +28,6 @@ general_generator.manual_seed(RANDOM_SEED)
 train_generator = torch.Generator()
 train_generator.manual_seed(RANDOM_SEED)
 
-
 def seed_worker(worker_id):
     worker_seed = torch.initial_seed() % 2 ** 32
     np.random.seed(worker_seed)
@@ -88,7 +87,7 @@ def test(config, data_loader_dict):
     if config.MODEL.NAME == "Physnet":
         model_trainer = trainer.PhysnetTrainer.PhysnetTrainer(config, data_loader_dict)
     elif config.MODEL.NAME == "iBVPNet":
-        model_trainer = trainer.iBVPNetTrainer.iBVPNetTrainer(config, data_loader_dict)    
+        model_trainer = trainer.iBVPNetTrainer.iBVPNetTrainer(config, data_loader_dict)  
     elif config.MODEL.NAME == "Tscan":
         model_trainer = trainer.TscanTrainer.TscanTrainer(config, data_loader_dict)
     elif config.MODEL.NAME == "EfficientPhys":
@@ -250,6 +249,10 @@ if __name__ == "__main__":
         # Create and initialize the test dataloader given the correct toolbox mode,
         # a supported dataset name, and a valid dataset path
         if config.TEST.DATA.DATASET and config.TEST.DATA.DATA_PATH:
+            print("===config.TEST.DATA.DATASET====")
+            print(config.TEST.DATA.DATASET)
+            print("===config.TEST.DATA.DATA_PATH====")
+            print(config.TEST.DATA.DATA_PATH)
             test_data = test_loader(
                 name="test",
                 data_path=config.TEST.DATA.DATA_PATH,

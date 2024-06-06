@@ -67,6 +67,10 @@ class BaseLoader(Dataset):
             self.raw_data_dirs = self.get_raw_data(self.raw_data_path)
             self.preprocess_dataset(self.raw_data_dirs, config_data.PREPROCESS, config_data.BEGIN, config_data.END)
         else:
+            print("===self.cached_path===")
+            print(self.cached_path)
+            print("===self.file_list_path===")
+            print(self.file_list_path)
             if not os.path.exists(self.cached_path):
                 print('CACHED_PATH:', self.cached_path)
                 raise ValueError(self.dataset_name,
@@ -77,6 +81,8 @@ class BaseLoader(Dataset):
                 self.build_file_list_retroactive(self.raw_data_dirs, config_data.BEGIN, config_data.END)
                 print('File list generated.', end='\n\n')
 
+            print("===self===")
+            print(self)
             self.load_preprocessed_data()
         print('Cached Data Path', self.cached_path, end='\n\n')
         print('File List Path', self.file_list_path)
