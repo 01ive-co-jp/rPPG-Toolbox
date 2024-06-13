@@ -17,6 +17,7 @@ from unsupervised_methods import utils
 import math
 from multiprocessing import Pool, Process, Value, Array, Manager
 
+import sys
 import cv2
 import numpy as np
 import pandas as pd
@@ -229,6 +230,7 @@ class BaseLoader(Dataset):
         """
         # resize frames and crop for face region
         frames = self.crop_face_resize(
+            # ここで動画の全てのデータを渡しているため、処理が重くなるように見える、、、
             frames,
             config_preprocess.CROP_FACE.DO_CROP_FACE,
             config_preprocess.CROP_FACE.BACKEND,
@@ -241,22 +243,40 @@ class BaseLoader(Dataset):
             config_preprocess.RESIZE.H)
         # Check data transformation type
         data = list()  # Video data
+
+        # framesの各要素名をframeとする。
+        # frameはおそらくvideoの1フレームである。
+        # データ形状はおそらく
+        # データタイプ: uint8（符号なし8ビット整数）、ピクセル値は0から255の範囲。
+        # 形状: (高さ, 幅, チャンネル数)。カラー画像の場合は通常 (高さ, 幅, 3)
+        # になっていると思われる
+        # つまりframesは(動画のフレーム数, 高さ, 幅, チャンネル数)の4次元構造と思われる。
+
+        # yamlのDATA_TYPEによって処理分岐する箇所
+        # スケーリング処理により機械学習へのinputをデータとして適切に
+        # また、plot時にスケールが合うのでわかりやすいという面がある
         for data_type in config_preprocess.DATA_TYPE:
             f_c = frames.copy()
             if data_type == "Raw":
                 data.append(f_c)
+            # ビデオフレーム間の差分の正規化(変化量)
             elif data_type == "DiffNormalized":
                 data.append(BaseLoader.diff_normalize_data(f_c))
+            # Zスコア標準化
             elif data_type == "Standardized":
                 data.append(BaseLoader.standardized_data(f_c))
             else:
                 raise ValueError("Unsupported data type!")
         data = np.concatenate(data, axis=-1)  # concatenate all channels
+
+        # yamlのLABEL_TYPEによって処理を分岐する箇所
         if config_preprocess.LABEL_TYPE == "Raw":
             pass
         elif config_preprocess.LABEL_TYPE == "DiffNormalized":
+            # 差分の正規化
             bvps = BaseLoader.diff_normalize_label(bvps)
         elif config_preprocess.LABEL_TYPE == "Standardized":
+            # Zスコア標準化
             bvps = BaseLoader.standardized_label(bvps)
         else:
             raise ValueError("Unsupported label type!")
@@ -281,6 +301,12 @@ class BaseLoader(Dataset):
         Returns:
             face_box_coor(List[int]): coordinates of face bouding box.
         """
+
+        #print(frame)
+        print("===frame.shape===")
+        print(frame.shape)
+        #sys.exit("処理停止")
+
         if backend == "HC":
             # Use OpenCV's Haar Cascade algorithm implementation for face detection
             # This should only utilize the CPU
@@ -347,6 +373,10 @@ class BaseLoader(Dataset):
             face_box_coor[1] = max(0, face_box_coor[1] - (larger_box_coef - 1.0) / 2 * face_box_coor[3])
             face_box_coor[2] = larger_box_coef * face_box_coor[2]
             face_box_coor[3] = larger_box_coef * face_box_coor[3]
+
+        print("===face_box_coor===")
+        print(face_box_coor)
+
         return face_box_coor
 
     def crop_face_resize(self, frames, use_face_detection, backend, use_larger_box, larger_box_coef, use_dynamic_detection, 
@@ -376,9 +406,15 @@ class BaseLoader(Dataset):
         face_region_all = []
         # Perform face detection by num_dynamic_det" times.
         for idx in range(num_dynamic_det):
+            print("===use_face_detection===")
+            #print(use_face_detection)
             if use_face_detection:
+                print("===True face_region_all add object===")
+                #print(self.face_detection(frames[detection_freq * idx], backend, use_larger_box, larger_box_coef))
                 face_region_all.append(self.face_detection(frames[detection_freq * idx], backend, use_larger_box, larger_box_coef))
             else:
+                print("===False face_region_all add object===")
+                #print([0, 0, frames.shape[1], frames.shape[2]])
                 face_region_all.append([0, 0, frames.shape[1], frames.shape[2]])
         face_region_all = np.asarray(face_region_all, dtype='int')
         if use_median_box:
@@ -389,6 +425,15 @@ class BaseLoader(Dataset):
         resized_frames = np.zeros((frames.shape[0], height, width, 3))
         for i in range(0, frames.shape[0]):
             frame = frames[i]
+
+            #png_dir = f"./png-raw/"
+
+            #frame_write = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            #cv2.imwrite(os.path.join(png_dir, f"original_{str(i)}.png"), cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+
+            #cv2.imwrite(f"original_{str(i)}.png", frame)
+            #cv2.imwrite(f"original_{str(i)}.png", cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+
             if use_dynamic_detection:  # use the (i // detection_freq)-th facial region.
                 reference_index = i // detection_freq
             else:  # use the first region obtrained from the first frame.
@@ -401,6 +446,18 @@ class BaseLoader(Dataset):
                 frame = frame[max(face_region[1], 0):min(face_region[1] + face_region[3], frame.shape[0]),
                         max(face_region[0], 0):min(face_region[0] + face_region[2], frame.shape[1])]
             resized_frames[i] = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
+        
+            try:
+                 # Convert frame to uint8 before saving
+                frame_uint8 = frame.astype(np.uint8)
+                resized_frame_uint8 = resized_frames[i].astype(np.uint8)
+
+                #cv2.imwrite(f"resized_be_original_{str(i)}.png",  cv2.cvtColor(frame_uint8, cv2.COLOR_RGB2BGR))
+                #cv2.imwrite(f"resized_{str(i)}.png", cv2.cvtColor(resized_frame_uint8, cv2.COLOR_RGB2BGR))
+            except Exception as e:
+                print(f"Error writing image {i}: {e}")
+
+
         return resized_frames
 
     def chunk(self, frames, bvps, chunk_length):
@@ -463,8 +520,19 @@ class BaseLoader(Dataset):
         label_path_name_list = []
         for i in range(len(bvps_clips)):
             assert (len(self.inputs) == len(self.labels))
-            input_path_name = self.cached_path + os.sep + "{0}_input{1}.npy".format(filename, str(count))
-            label_path_name = self.cached_path + os.sep + "{0}_label{1}.npy".format(filename, str(count))
+            print("===filename===")
+            print(filename)
+            print("===count===")
+            print(count)
+            print("===self.cached_path===")
+            print(self.cached_path)
+            # ここ処理変えたので他のでも動くかテスト必要
+            input_path_name = self.cached_path + os.sep + "{0}_input{1}.npy".format(os.path.basename(filename), str(count))
+            label_path_name = self.cached_path + os.sep + "{0}_label{1}.npy".format(os.path.basename(filename), str(count))
+            print("===input_path_name===")
+            print(input_path_name)
+            print("===label_path_name===")
+            print(label_path_name)
             input_path_name_list.append(input_path_name)
             label_path_name_list.append(label_path_name)
             np.save(input_path_name, frames_clips[i])

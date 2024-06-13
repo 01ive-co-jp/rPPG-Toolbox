@@ -6,7 +6,7 @@ TEST:
   USE_LAST_EPOCH: True
   DATA:
     FILTERING:
-      USE_EXCLUSION_LIST: True
+      USE_EXCLUSION_LIST: False
       #EXCLUSION_LIST: [
       #'s3_T1', 's8_T1', 's9_T1', 's26_T1', 's28_T1', 's30_T1', 's31_T1', 's32_T1',
       #'s33_T1', 's40_T1', 's52_T1', 's53_T1', 's54_T1', 's56_T1', 's1_T2', 's4_T2',
@@ -21,10 +21,10 @@ TEST:
           's1_T2', 
       ]
       SELECT_TASKS: True
-      TASK_LIST: ['T1', 'T2', 'T3']
+      TASK_LIST: ['T1']
     FS: 35
     DATASET: UBFC-PHYS
-    DO_PREPROCESS: false                    # if first time, should be true
+    DO_PREPROCESS: true                    # if first time, should be true
     DATA_FORMAT: NDCHW
     #DATA_PATH:   "/gscratch/ubicomp/xliu0/data3/mnt/Datasets/UBFC-PHYS/RawData"                     # Raw dataset path, need to be updated
     #CACHED_PATH: "/gscratch/ubicomp/xliu0/data3/mnt/Datasets/rppg_toolbox/PreprocessedData"    # Processed dataset save path, need to be updated
@@ -37,7 +37,7 @@ TEST:
       DATA_TYPE: ['Standardized']
       LABEL_TYPE: DiffNormalized
       DO_CHUNK: True
-      CHUNK_LENGTH: 210
+      CHUNK_LENGTH: 180
       CROP_FACE:
         DO_CROP_FACE: True
         BACKEND: 'HC'    # HC for Haar Cascade, RF for RetinaFace

@@ -41,7 +41,11 @@
 
 - 使用するデータセット`UBFC-Phys`
 
-## 仮想環境の構築方法として試した手順(結果動かすことはできなかった。)
+下記の手順をwindowsで実施したいです。
+
+pyenvの導入から教えてください。
+
+#### 仮想環境の構築方法として試した手順(結果動かすことはできなかった。)
     - `README.md`では`conda`を使用しているが仮想環境で動かせないか試す手順。
 - 前提として`pyenv`が入っていること
 ```:bash
@@ -71,7 +75,7 @@ $pip install -r requirements.txt
 $uname -m
 ```
 
-## `conda`を使用する方法(環境構築はできた方法-Intel Macでの動作は確認した。)
+#### `conda`を使用する方法(環境構築はできた方法-Intel Macでの動作は確認した。)
 - 実行場所は、`rppg-toolbox`の`top dir`
 - 前提として`homebrew`が入っていること。
 - 環境を汚したくないので、`rppg-toolbox`とは少し異なる方法を採用している。
@@ -127,7 +131,7 @@ $conda activate rppg-toolbox
 $pip install -r requirements.txt
 ```
 
-## 環境構築後機械学習`code`を動かす手順
+#### 環境構築後機械学習`code`を動かす手順
 - `UBFC-Phys`の`s1`のデータがのみがある状態での作業を想定。
 - `README.md`の`dataset`の節に記載されている方法でデータ配置してみる。
 - `UBFC-Phys`の場合
@@ -190,7 +194,6 @@ $python main.py --config_file ./configs/infer_configs/PURE_UBFC-PHYS_DEEPPHYS_BA
     - `saved_test_outputs`
 - 出力された`pickle`を使用し、`/tools/output_signal_viz/data_out_viz.ipynb`の`pickle path`を変更することで、脈波?(要確認)の`plot`ができる
 
-
 - エラーメッセージ記録
 - `gpu`ないことによるエラー
 ```:bash
@@ -239,14 +242,11 @@ numpy.linalg.LinAlgError: Matrix is not positive definite
 ```
 - 一旦上記記載の方法で動かすことができた。
 
-## `UBFC-Phys`に対する知見
+#### `UBFC-Phys`に対する知見
 - 3つ目のタスクの動画が音声だけのものがあった。(`DL miss?`)
-
-
 - やりたいこと
     - `M mac`で本当に動かないのか再度確認する。
     - 再度手順を試したが動かなかった。
-
 
 ### 2024/06/06：作業者：岡田
 - 追加タスク
@@ -265,6 +265,11 @@ numpy.linalg.LinAlgError: Matrix is not positive definite
   - `PhysNet`
   - `TS-CAN`
 
+- `DeepPhys`
+```:bash
+$python main.py --config_file ./configs/infer_configs/PURE_UBFC-PHYS_DEEPPHYS_BASIC.yaml
+```
+
 - `EfficentPhys`
 ```:bash
 $python main.py --config_file ./configs/infer_configs/PURE_UBFC-PHYS_EFFICIENTPHYS.yaml
@@ -281,6 +286,379 @@ $python main.py --config_file ./configs/infer_configs/PURE_UBFC-PHYS_PHYSNET_BAS
 ```:bash
 $python main.py --config_file ./configs/infer_configs/PURE_UBFC-PHYS_TSCAN_BASIC.yaml
 ```
+
+#### `windows`の`desktop PC`での環境構築方法
+- `Intel Mac`での動作確認は大体できたので、`windows`の`desktop PC`での環境構築実行方法を検証する。
+- 処理が重めのものが多いので、`Intel Mac`だけだと処理に時間がかかりすぎると判断したため。
+
+- パッケージ管理をできるだけ行いたいので、`winget`(`Windows 10`以降であれば自動で入っている。)を使用する。
+- `python`の`install`
+- `power shell`を管理者権限で起動。
+```:powershell
+python
+```
+- 入力すると`app store`が開き`python`を`install`できる。
+- `python`が`install`できたかと`version`を確認する。
+```:powershell
+python --version
+```
+- `pip`の`upgrate`(なんかパーミッションエラー出た。`pip`は使用できるのでそのまま使用しても良い。)
+```:powershell
+python -m pip install --upgrade pip
+```
+- `pip`のバージョン確認。
+```:powershell
+pip --version
+```
+- `pyenv-win`の`install`
+```:powershell
+pip install pyenv-win --target $HOME\.pyenv
+```
+- 環境変数の設定
+```:powershell
+[System.Environment]::SetEnvironmentVariable('PYENV', $env:USERPROFILE + "\.pyenv\pyenv-win\", "User")
+[System.Environment]::SetEnvironmentVariable('PYENV_ROOT', $env:USERPROFILE + "\.pyenv\pyenv-win\", "User")
+[System.Environment]::SetEnvironmentVariable('PYENV_HOME', $env:USERPROFILE + "\.pyenv\pyenv-win\", "User")
+[System.Environment]::SetEnvironmentVariable('PATH', $env:USERPROFILE + "\.pyenv\pyenv-win\bin;" + $env:USERPROFILE + "\.pyenv\pyenv-win\shims;" + [System.Environment]::GetEnvironmentVariable('PATH', "User"), "User")
+```
+- 環境変数の変更を反映させるために、PowerShellを再起動する。
+- `pyenv`の動作確認
+```:powershell
+pyenv --version
+```
+- 必要な`python version`(3.8系)を`pyenv`から`install`
+```:powershell
+pyenv install 3.8.10
+pyenv global 3.8.10
+```
+- 反映されているか確認
+```:powershell
+python --version
+```
+- 仮想環境の作成
+```:powershell
+python -m venv python-3.8.10.venv.rPPG
+```
+- 仮想環境のアクティベート
+  - `path`の記載方法の問題で、移動して直接`activate`する必要があるかも。
+```:powershell
+python-3.8.19.venv.rPPG\Scripts\activate
+```
+- 必要なライブラリの`install`
+  - `gpu`搭載の`pc`想定のコマンド
+```:powershell
+pip install torch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1
+```
+- `requirements.txt`からライブラリをインストール
+```:powershell
+pip install -r requirements.txt
+```
+- 以上の手順で環境構築は完了した。
+- `python main.py`を実施した際(`UBFC-Phys dataset`)に、前処理をかけた際に、メモリ容量エラーで前処理が正常に完了しなかった。
+- 前処理が完了していないので、`input`データがないということで、最終の`output`出力にまでは至っていない。
+
+### 2024/06/07：作業者：岡田
+- `UBFC-Phys dataset`の内容について調査・理解する。
+- 対象として`s1`を用いる。
+- バイタルの計測機器は[`E4`](https://www.empatica.com/research/e4/)を使用している。
+- データの同期方法は、`E4`のトリガリングボタンを押し、ライトが光るのでそれで同期を行っている。
+- ただし、`vid_s1_T1.avi`にはトリガリングの瞬間がなかった。
+  - 他のデータも見たが`T1`系のタスクにはトリガリングの瞬間がなさそう、、、
+- `E4`で計測したデータは
+  - `BVP`:`sampling rate 64Hz`
+  - `EDA`:`sampling rate 4Hz`
+- `bvp_s1_T1.csv`の行数
+  - `11520/64=180s`
+- `eda_s1_T1.csv`の行数
+  - `720/4=180s`
+- 上記の情報より、バイタルデータと動画データは同じ長さのデータが準備されていることがわかった。
+- 感覚、同期したデータを入れて、同期した範囲の`output`でないとだめな気がするが、前処理の構造がどうなっているか確認する。
+
+- 調査してわかったこと。
+  - 前処理の設定値として、の2つがある模様。(`yaml`に記載されている。)
+    - `DiffNormalized`
+    - `Standardized`
+  - 現状わからないこととして、設定箇所として
+    - `DATA_TYPE`
+    - `LABEL_TYPE`
+    - の2つがあるが、`DATA_TYPE`が`list`形式で2つ指定できたりするのがよくわからない。
+  - 前処理後のデータは、`.npy`形式で書き出される。
+    - ビデオ側の`.npy`のデータと思われるものの形状
+      - `s1_T1_input0.npy`の場合以下の状態
+    ```:python
+    print(data.shape)
+    (128, 72, 72, 3)
+    ```
+      - おそらくだが、128フレーム、72*72の画像、RGB情報の3つという形状と思われる。
+      - `s1_T1`の場合、49ファイルあった。
+      - つまり`128 * 49 = 6272`相当
+      - `6272 / 35 = 179.2s`相当(元動画は`180s`)
+    - ラベル側の`.npy`のデータと思われるものの形状
+      - `s1_T1_label0.npy`
+    ```:python
+    print(data.shape)
+    (128, )
+    ```
+      - つまり`128 * 49 = 6272`相当
+      - `6272 / 35 = 179.2s`相当(元動画は`180s`)
+
+    - 思考
+      - 疑問として、構造的に同期したデータを`input`しているわけではないと思うので、そのまま入れて評価として使用していいのか疑問。
+      - 出力後に同期を取る方法もあるとは思うが、リサンプリング等もするので、本当にいいのろうか、、、
+
+    - 顔の検出機能も前処理として入っていそう。
+    - `CROP_FACE: BACKEND: 'HC'`の設定項目にて、`face detector`の種類を設置できそう。
+    - 2種類指定することができ、
+      - `HC:cv2.CascadeClassifier`を使用
+      - `RF:RetinaFace.detect_faces`を使用
+    - 該当箇所は`dataset/data_loader/BaseLoader.py`の`def face_detection()`関数に記載されている。
+    
+
+    - 処理想定
+      - 画像の`raw`から顔を検出して、検出した顔の画像範囲を指定ピクセル`72*72`にリサイズしているぽい・・・？
+      - 検証のために以下の`code`を入れて出力を確かめてみる。
+      - `BaseLoader.py`の`def face_detection()`に`print(frame.shape)`を入れて`faced detector`に入れる画像を確かめる。
+      - 出力`(1024, 1024, 3)`であったので、`face detect`は元動画のフレームの大きさで実施していそう。
+      - `===face_box_coor===[225  45 789 789]`の出力が、異なっていたので、`face detect`した異なる矩形範囲を使用していそう。
+
+### 2024/06/10：作業者：岡田
+- 処理想定の確認のため、リサイズ前とリサイズ後の`png`の書き出し処理を`BaseLoader.py`の420行目ほどに追加。
+```:python
+# 415行目あたり
+cv2.imwrite(f"original_{str(i)}.png", frame)
+# 431行目あたり
+cv2.imwrite(f"resized_be_original_{str(i)}.png", frame)
+cv2.imwrite(f"resized_{str(i)}.png", resized_frames[i])
+```
+- 上記の`code`を追加し前処理を回すと、`top dir`に`png`ファイルが書き出される。
+- 以下に出力画像を貼り付ける。色味がおかしいのは`RGB`の順序を間違えて出力しているからである。ピクセルの大きさが問題なので、そのままにしている。
+- 元画像
+  - 1024 * 1024
+  ![オリジナル画像](./assets/original_0.png)
+- `face detect`検出画像
+  - 830 * 834
+  ![`face detect`検出画像](./assets/resized_be_original_0.png)
+- リサイズ画像
+  - 74 * 74
+  ![リサイズ画像](./assets/resized_0.png)
+
+- 他の`face detect`検出画像を確認したがサイズが異なる場合があったので、検出された異なる画像サイズのものを指定サイズ（ここでは72 * 72）にして`input`としているのは確実と考えられる。
+
+- 前処理の挙動を正確に把握する。
+- `s1`のデータを入れた状態で下記の出力を確認する。
+```:python
+$python main.py --config_file ./configs/infer_configs/PURE_UBFC-PHYS_DEEPPHYS_BASIC.yaml
+```
+- 出力された`./PreprocessedData/UBFC-PHYS_SizeW72_SizeH72_ClipLength210_DataTypeDiffNormalized_Standardized_DataAugNone_LabelTypeDiffNormalized_Crop_faceTrue_BackendHC_Large_boxTrue_Large_size1.5_Dyamic_DetTrue_det_len35_Median_face_boxTrue/s1_T1_input0.npy`の形状確認。
+- (210, 72, 72, 6)
+- 30ファイルあるので`210 * 30 = 6300`
+- 元動画は`35fps`なので`6300 / 35 = 180s`
+
+- 出力された`./PreprocessedData/UBFC-PHYS_SizeW72_SizeH72_ClipLength210_DataTypeDiffNormalized_Standardized_DataAugNone_LabelTypeDiffNormalized_Crop_faceTrue_BackendHC_Large_boxTrue_Large_size1.5_Dyamic_DetTrue_det_len35_Median_face_boxTrue/s1_T1_label0.npy`の形状確認。
+- (210,)
+
+- `config`の`CHUNK_LENGTH: 210`で1回のエポックで入力するテンソルの長さを指定している模様。
+
+- 調査必要だが、モデルによって`DATA_TYPE: [ 'DiffNormalized','Standardized' ]`が決まっていそう。
+- ここが`list`の場合、`s1_T1_input0.npy`の出力の次元数がそのデータ分増えていた。(最終の次元がRGBと思われるので、2つの場合は6次元になっていた。)
+- ラベルデータのスケーリングの指定は`LABEL_TYPE: DiffNormalized`で行う。
+- 上記の処理の該当箇所は`BaseLoader.py`の`def preprocess(self, frames, bvps, config_preprocess):`関数あたり。
+
+
+- 出力挙動の確認。
+- `EXCLUSION_LIST`(除外)の`TASK_LIST`の指定と出力を確認する。
+- 該当箇所は`UBFCPHYSLoader.py`の`def load_preprocessed_data(self):`関数箇所。
+
+### 2024/06/11：作業者：岡田
+- 出力`pickle`の中身を確認したところ、行数が5400行しかなかった。154s分相当である。
+- 180sの動画なので、26sのデータがどこに行ったのか調査する。
+- 色々と試行錯誤してみたが、詳細理由は現状ではわからなかった。
+- 得られた知見として、
+  - `yaml`の`CHUNK_LENGTH: 180`は前処理の際にまとめて書き出すフレーム数である。`.npy`ファイルのこと。
+  - つまり、`35fps`の動画に対して`CHUNK_LENGTH: 35`で処理をかけると、動画の秒数分の`.npy`ファイルができる。
+  - `BATCH_SIZE: 4`は推論時に一度に処理する`.npy`ファイルの数(一度に処理するエポックの数)だと思われる。
+  - 一応、動画の`fps`数を`CHUNK_LENGTH`に指定し、`BATCH_SIZE`を1にすれば、動画の長さ分の出力は得られそう。
+  `CHUNK_LENGTH: 210`で実施すると、5400行の出力となり`154s`分のデータにしかならない、、、なぜだ、、、
+
+- オリジナルデータセットを各種モデルにかけられるようにデータの追加方法を調査する。
+- データセットを`dataset dir`に移動。
+- 独自で作成した`dataset name`は`Olive-VPPG`とした。
+- 新しいデータ追加用プログラムとして`OliveVPPGLoader.py`を追加した。
+- `LLM`に出力させた大筋の手順は以下。
+```
+**新しいデータセットを追加する手順**
+
+1. [dataset/](file:///Users/takuma/Desktop/02_Github/rPPG-Toolbox/README.md#339%2C40-339%2C40) ディレクトリに新しいデータセットのファイル(例えば `dataset/MyNewDataset.py`)を作成します。このファイルには、データセットの詳細な説明が含まれています。
+
+2. このファイル内に、データセットの名前と説明を書いてください。例えば、`MyNewDataset = "This dataset contains information about..."` のようにします。
+
+3. `main.py` の中で、このデータセットファイルをインポートします。例えば、`from dataset.MyNewDataset import MyNewDataset` のようにします。
+
+4. `main.py` の中で、データセットの名前空間を作成します。例えば、`MyNewDataset = MyNewDataset()`のようにします。
+
+5. 最後に、`main.py` の中で、データセットの説明文を書いてください。例えば、`MyNewDataset = MyNewDataset("This dataset contains information about...")`のようにします。
+
+6. このデータセットの説明文は、プログラムの実行時に参照されます。例えば、`MyNewDataset = MyNewDataset("This dataset contains information about...") `のようにします。
+
+7. プログラムの実行中に、このデータセットの説明文は、データセットの名前空間に格納されます。
+
+8. プログラムの終了時に、この説明文は、データセットの名前空間から取り出されます。
+
+9. この説明文は、データセットの名前空間の中に格納されている情報を表示するために使われます。
+
+10. この説明文は、プログラムの実行中に参照されます。
+
+**注意:** この説明文は、プログラムの実行中に頻繁に参照されます。したがって、この説明文を注意深く読んでおくことが重要です。
+
+プログラムの実行中に、この説明文に含まれる情報は、データセットの名前空間に格納されます。このデータセットの名前空間は、プログラムの終了時に参照されます。したがって、この説明文を注意深く読んでおくことが重要です。
+```
+- `Loader.py`の大筋の中身。
+```：python
+from BaseLoader import BaseLoader
+
+class OriginalLoader(BaseLoader):
+    def get_raw_data(self, raw_data_path):
+        # ここにデータセット特有の生データ取得ロジックを実装
+        pass
+
+    def split_raw_data(self, data_dirs, begin, end):
+        # データセットを訓練、検証、テスト用に分割するロジックを実装
+        pass
+
+    def preprocess_dataset(self, data_dirs, config_preprocess, begin, end):
+        # データの前処理ロジックを実装
+        pass
+
+    @staticmethod
+    def read_video(video_file):
+        # ビデオファイル読み込みの実装
+        pass
+
+    @staticmethod
+    def read_wave(bvp_file):
+        # 生理信号ファイル読み込みの実装
+        pass
+```
+
+- 実際の手順
+- `dataset/data_loader/OliveVPPGLoader.py`を作成した。
+- `dataset/data_loader/__init__.py`に`OliveVPPGLoader`を追加した。
+- `configs/infer_configs/PURE_Olive-VPPG_DEEPPHYS_BASIC.yaml`の作成。
+- `main.py`に`OliveVPPGLoader`も読み込めるように`code`編集。
+- 実行`code`
+```:bash
+$python main.py --config_file ./configs/infer_configs/PURE_Olive-VPPG_DEEPPHYS_BASIC.yaml
+```
+
+- 問題のメモ
+  - `BaseLoader.py`にて、`frames`の引数が動画全体を配列にしているため、処理が重いように見える。
+  - ここを改善した方が良さそう。
+
+- 知見のメモ
+- `BaseLoader.py`の`def diff_normalize_data(data)`より、`DATA_TYPE`が`DiffNormalized`の場合、出力される最後の配列の値が0になるため、動画の最後のフレーム(もしかしたらエポック？)の予測はできなさそうな気がする。(要確認)
+
+- とりあえず、改修終わった気がするので、回してみる。
+```:bash
+$conda activate rppg-toolbox
+$python main.py --config_file ./configs/infer_configs/PURE_Olive-VPPG_DEEPPHYS_BASIC.yaml
+```
+- 諸々改修して動かせた！！
+- 指の`PPG`がないデータもあるので`EXCLUSION_LIST`が機能するかはテスト必要。
+- `BaseLoader.py`の`def save_multi_process`の一部処理変えたので、他のデータセットでも動くかテスト必要。(前処理プロセスを実施する必要あり)
+
+### 2024/06/12：作業者：岡田
+- 各種モデル等が正常に動作するかの確認を行う。
+- 迅速なテストのために、`001.mp4`を20s程度にした動画で検証を実施した。
+- カラーで描き出せるように`BaseLoader.py`の`cv2.imwrite`の処理を修正した。
+- `BACKEND: RF`にして回してみた(下記)。
+```:bash
+$python main.py --config_file ./configs/infer_configs/PURE_Olive-VPPG_DEEPPHYS_BASIC.yaml
+```
+- 問題なく動くか確認。
+- 動作を見る限り`RF`の方が処理が重い模様。
+- 動作は正常の模様。
+- 以下の検証を行う。
+  - `Olive-VPPG`のデータセットにて、全ての機械学習モデルが動作するか確認する。(左記に伴い`yaml`の作成も必要)
+  - `UBFC-Phys`のデータセットにて数理モデル`UNSUPERVISED`が動作するか確認する。
+- `UBFC-Phys`の`s1`の10s動画を作成。
+- `UBFC-PHYS_UNSUPERVISED.yaml`で動作するか試してみる。
+```:bash
+$python main.py --config_file ./configs/infer_configs/UBFC-PHYS_UNSUPERVISED.yaml
+```
+- 出力される画像を確認したが、`UNSUPERVISED`なモデルでも画像は矩形範囲(皮膚のみがROIではない)ものをリサイズしたものを使用していた。
+- `output`の`pikle`が出力されない。なぜだ。
+
+### 2024/06/13：作業者：岡田
+- `EXCLUSION_LIST`が機能するかテストする。
+- `Olive-VPPG`の`EXCLUSION_LIST`にて、`002`を追加し、`002`の処理が回らないことを確かめる。
+```:bash
+$python main.py --config_file ./configs/infer_configs/PURE_Olive-VPPG_DEEPPHYS_BASIC.yaml
+```
+- `OliveVPPGLoader.py`の`def load_load_preprocessed_data(self):`に`EXCLUSION_LIST`に関連する処理があるが、ここが対応できていなさそう。
+- 余裕がある時に改修する。
+- 挙動的に前処理は自動で全てのデータにかかりそう。
+- `EXCLUSION_LIST`は推論をどれにするかの設定値ぽい？(ただテストすると、`002`を入れた時に動かないので詳細調査必要)
+
+- `Olive-VPPG`に対応した`yaml`の全パターンの作成と検証を行う。
+
+- `DeepPhys`
+- `PURE_Olive-VPPG_DEEPPHYS_BASIC.yaml`
+```:bash
+$python main.py --config_file ./configs/infer_configs/PURE_Olive-VPPG_DEEPPHYS_BASIC.yaml
+```
+
+- `EfficentPhys`
+- `PURE_Olive-VPPG_EFFICIENTPHYS.yaml`
+```:bash
+$python main.py --config_file ./configs/infer_configs/PURE_Olive-VPPG_EFFICIENTPHYS.yaml
+```
+
+- `PhysFormer`
+- `PURE_Olive-VPPG_PHYSFORMER.yaml`
+```:bash
+$python main.py --config_file ./configs/infer_configs/PURE_Olive-VPPG_PHYSFORMER.yaml
+```
+
+- `PhysNet`
+- `CHUNK_LENGTH: 128`と`DYNAMIC_DETECTION_FREQUENCY : 30`が一定値でないと正常に動作しないかもしれない。
+- `PURE_Olive-VPPG_PHYSNET.yaml`
+```:bash
+$python main.py --config_file ./configs/infer_configs/PURE_Olive-VPPG_PHYSNET.yaml
+```
+
+- `TS-CAN`
+- `PURE_Olive-VPPG_TSCAN.yaml`
+```:bash
+$python main.py --config_file ./configs/infer_configs/PURE_Olive-VPPG_TSCAN.yaml
+```
+
+- `UNSUPERVISED`
+- `PURE_Olive-VPPG_UNSUPERVISED.yaml`
+```:bash
+$python main.py --config_file ./configs/infer_configs/PURE_Olive-VPPG_UNSUPERVISED.yaml
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

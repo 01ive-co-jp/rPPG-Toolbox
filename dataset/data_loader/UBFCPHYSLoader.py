@@ -136,9 +136,6 @@ class UBFCPHYSLoader(BaseLoader):
             print(input)
             input_name = input.split(os.sep)[-1].split('.')[0].rsplit('_', 1)[0]
 
-
-
-
             if self.filtering.USE_EXCLUSION_LIST and input_name in self.filtering.EXCLUSION_LIST :
                 print("=self.filtering.USE_EXCLUSION_LIST and input_name in self.filtering.EXCLUSION_LIST")
                 # Skip loading the input as it's in the exclusion list

@@ -1,15 +1,21 @@
 BASE: ['']
 TOOLBOX_MODE: "only_test"  # "train_and_test"  or "only_test"
 TEST:
-  METRICS: ['MAE', 'RMSE', 'MAPE', 'Pearson', 'SNR', 'BA']
+  #METRICS: ['MAE', 'RMSE', 'MAPE', 'Pearson', 'SNR', 'BA']
+  METRICS: ['MAE', 'RMSE', 'MAPE', 'Pearson', 'SNR']
   USE_LAST_EPOCH: True
   DATA:
+    FILTERING:
+      USE_EXCLUSION_LIST: False
+      EXCLUSION_LIST: []
+      SELECT_TASKS: False
+      TASK_LIST: ['T1', 'T2', 'T3']
     FS: 30
-    DATASET: UBFC-rPPG
-    DO_PREPROCESS: False                  # if first time, should be true
+    DATASET: Olive-VPPG
+    DO_PREPROCESS: true                  # if first time, should be true
     DATA_FORMAT: NCDHW
-    DATA_PATH: "/gscratch/ubicomp/xliu0/data3/mnt/Datasets/UBFC-rPPG/RawData"                     # Raw dataset path, need to be updated
-    CACHED_PATH: "/gscratch/ubicomp/xliu0/data3/mnt/Datasets/rppg_toolbox/PreprocessedData"    # Processed dataset save path, need to be updated
+    DATA_PATH: "/Users/olive_guest/Desktop/rPPG-Toolbox/dataset/Olive-VPPG/dataset"          
+    CACHED_PATH: "/Users/olive_guest/Desktop/rPPG-Toolbox/PreprocessedData" 
     EXP_DATA_NAME: ""
     BEGIN: 0.0
     END: 1.0
@@ -24,13 +30,13 @@ TEST:
         USE_LARGE_FACE_BOX: True
         LARGE_BOX_COEF: 1.5
         DETECTION:
-          DO_DYNAMIC_DETECTION: False
-          DYNAMIC_DETECTION_FREQUENCY : 32
-          USE_MEDIAN_FACE_BOX: False    # This should be used ONLY if dynamic detection is used
+          DO_DYNAMIC_DETECTION: True
+          DYNAMIC_DETECTION_FREQUENCY : 30
+          USE_MEDIAN_FACE_BOX: True    # This should be used ONLY if dynamic detection is used
       RESIZE:
         H: 72
         W: 72
-DEVICE: cuda:0
+DEVICE: cpu
 NUM_OF_GPU_TRAIN: 1
 LOG:
   PATH: runs/exp

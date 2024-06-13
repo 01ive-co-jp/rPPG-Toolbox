@@ -1,32 +1,29 @@
 BASE: ['']
 TOOLBOX_MODE: "only_test"      # "train_and_test"  or "only_test"
 TEST:
-  METRICS: ['MAE', 'RMSE', 'MAPE', 'Pearson', 'SNR', 'BA']
-  USE_LAST_EPOCH: False                      # to use provided validation dataset to find the best epoch, should be false
+  #METRICS: ['MAE', 'RMSE', 'MAPE', 'Pearson', 'SNR', 'BA']
+  METRICS: ['MAE', 'RMSE', 'MAPE', 'Pearson', 'SNR']
+  USE_LAST_EPOCH: False                   # to use provided validation dataset to find the best epoch, should be false
   DATA:
-    INFO:
-      LIGHT: [1, 2, 3, 4]  # 1 - LED-Low, 2 - LED-high, 3 - Incandescent, 4 - Nature
-      MOTION: [1, 2, 3, 4] # 1 - Stationary, 2 - Rotation, 3 - Talking, 4 - Walking
-      EXERCISE: [1, 2] # 1 - True, 2 - False
-      SKIN_COLOR: [3, 4, 5, 6] # Fitzpatrick Scale Skin Types - 3, 4, 5, 6
-      GENDER: [1, 2]  # 1 - Male, 2 - Female
-      GLASSER: [1, 2] # 1 - True, 2 - False
-      HAIR_COVER: [1, 2] # 1 - True, 2 - False
-      MAKEUP: [1, 2] # 1 - True, 2 - False
+    FILTERING:
+      USE_EXCLUSION_LIST: False
+      EXCLUSION_LIST: []
+      SELECT_TASKS: False
+      TASK_LIST: ['T1', 'T2', 'T3']
     FS: 30
-    DATASET: MMPD
-    DO_PREPROCESS: False                  # if first time, should be true
+    DATASET: Olive-VPPG
+    DO_PREPROCESS: true                  # if first time, should be true
     DATA_FORMAT: NCDHW
-    DATA_PATH:   "/your/path/here"          # Raw dataset path, need to be updated
-    CACHED_PATH: "/your/path/here"      # Processed dataset save path, need to be updated
+    DATA_PATH: "/Users/olive_guest/Desktop/rPPG-Toolbox/dataset/Olive-VPPG/dataset"          
+    CACHED_PATH: "/Users/olive_guest/Desktop/rPPG-Toolbox/PreprocessedData"  
     EXP_DATA_NAME: ""
     BEGIN: 0.0
     END: 1.0
     PREPROCESS:
-      DATA_TYPE: [ 'DiffNormalized']
+      DATA_TYPE: ['DiffNormalized'] #if use physnet, should be DiffNormalized
       LABEL_TYPE: DiffNormalized
       DO_CHUNK: True
-      CHUNK_LENGTH: 160
+      CHUNK_LENGTH: 30
       CROP_FACE:
         DO_CROP_FACE: True
         BACKEND: 'HC'    # HC for Haar Cascade, RF for RetinaFace
@@ -39,7 +36,7 @@ TEST:
       RESIZE:
         H: 128
         W: 128
-DEVICE: cuda:0
+DEVICE: cpu
 NUM_OF_GPU_TRAIN: 1
 LOG:
   PATH: runs/exp
@@ -59,4 +56,4 @@ INFERENCE:
   EVALUATION_WINDOW:
     USE_SMALLER_WINDOW: False        # Change this if you'd like an evaluation window smaller than the test video length
     WINDOW_SIZE: 10        # In seconds
-  MODEL_PATH:   "./final_model_release/UBFC-rPPG_PhysFormer_DiffNormalized.pth"
+  MODEL_PATH:   "./final_model_release/PURE_PhysFormer_DiffNormalized.pth"
