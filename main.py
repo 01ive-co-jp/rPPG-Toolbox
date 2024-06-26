@@ -102,10 +102,18 @@ def test(config, data_loader_dict):
         raise ValueError('Your Model is Not Supported  Yet!')
     model_trainer.test(data_loader_dict)
 
+    start_time = time.time()  # 処理時間計測開始
+    model_trainer.test(data_loader_dict)
+    end_time = time.time()  # 処理時間計測終了
+    print(f"Testing took {end_time - start_time:.2f} seconds.")  # 処理時間を表示
+
+
 
 def unsupervised_method_inference(config, data_loader):
     if not config.UNSUPERVISED.METHOD:
         raise ValueError("Please set unsupervised method in yaml!")
+    
+    start_time = time.time()  # 処理時間計測開始
     for unsupervised_method in config.UNSUPERVISED.METHOD:
         if unsupervised_method == "POS":
             unsupervised_predict(config, data_loader, "POS")
@@ -123,7 +131,8 @@ def unsupervised_method_inference(config, data_loader):
             unsupervised_predict(config, data_loader, "OMIT")
         else:
             raise ValueError("Not supported unsupervised method!")
-
+    end_time = time.time()  # 処理時間計測終了
+    print(f"Unsupervised inference took {end_time - start_time:.2f} seconds.")  # 処理時間を表示
 
 if __name__ == "__main__":
     # parse arguments.

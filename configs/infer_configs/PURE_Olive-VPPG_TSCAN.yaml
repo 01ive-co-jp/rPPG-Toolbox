@@ -15,7 +15,8 @@ TEST:
     DO_PREPROCESS: true                    # if first time, should be true
     DATA_FORMAT: NDCHW
     DATA_PATH: "/Users/olive_guest/Desktop/rPPG-Toolbox/dataset/Olive-VPPG/dataset"          
-    CACHED_PATH: "/Users/olive_guest/Desktop/rPPG-Toolbox/PreprocessedData" 
+    #CACHED_PATH: "/Users/olive_guest/Desktop/rPPG-Toolbox/PreprocessedData" 
+    CACHED_PATH: "/Volumes/GoPro/PreprocessedData"  
     EXP_DATA_NAME: ""
     BEGIN: 0.0
     END: 1.0

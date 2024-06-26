@@ -5,10 +5,25 @@
 
 
 
-
-
 #%%
+import tracemalloc
 
+def my_function():
+    # メモリ使用量を計測したい処理
+    tracemalloc.start()  # トレース開始
+    a = [1] * (10**6)
+    b = [2] * (2 * 10**7)
+    snapshot = tracemalloc.take_snapshot()  # スナップショットを取得
+    top_stats = snapshot.statistics('lineno')  # 行単位で集計
+
+    print("[ Top 10 ]")
+    for stat in top_stats[:10]:
+        print(stat)
+
+    tracemalloc.stop()  # トレース終了
+
+if __name__ == "__main__":
+    my_function()
 
 
 import numpy as np

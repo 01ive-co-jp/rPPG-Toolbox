@@ -16,12 +16,13 @@ TEST:
     # annotation記載されている情報なのに手動記載形式なので、将来回収必要
     FS: 30
     DATASET: Olive-VPPG
-    DO_PREPROCESS: false                  # if first time, should be true
+    DO_PREPROCESS: True                  # if first time, should be true
     DATA_FORMAT: NDCHW
     #DATA_PATH: "/gscratch/ubicomp/xliu0/data3/mnt/Datasets/UBFC-PHYS/RawData"          # need to be updated
     #CACHED_PATH: "/gscratch/ubicomp/xliu0/data3/mnt/Datasets/rppg_toolbox/PreprocessedData"    # Processed dataset save path, need to be updated
     DATA_PATH: "/Users/olive_guest/Desktop/rPPG-Toolbox/dataset/Olive-VPPG/dataset"          
-    CACHED_PATH: "/Users/olive_guest/Desktop/rPPG-Toolbox/PreprocessedData"  
+    #CACHED_PATH: "/Users/olive_guest/Desktop/rPPG-Toolbox/PreprocessedData"  
+    CACHED_PATH: "/Volumes/GoPro/PreprocessedData"  
     EXP_DATA_NAME: ""
     BEGIN: 0.0
     END: 1.0

@@ -265,6 +265,11 @@ numpy.linalg.LinAlgError: Matrix is not positive definite
   - `PhysNet`
   - `TS-CAN`
 
+- `conda`アクティベート
+```:bash
+$conda activate rppg-toolbox
+```
+
 - `DeepPhys`
 ```:bash
 $python main.py --config_file ./configs/infer_configs/PURE_UBFC-PHYS_DEEPPHYS_BASIC.yaml
@@ -637,6 +642,102 @@ $python main.py --config_file ./configs/infer_configs/PURE_Olive-VPPG_TSCAN.yaml
 ```:bash
 $python main.py --config_file ./configs/infer_configs/PURE_Olive-VPPG_UNSUPERVISED.yaml
 ```
+### 2024/06/24：作業者：岡田
+- 処理時間等の計測を行う。
+- `BaseLoader.py`に処理時間の表示`@time_it`を導入した。
+- `M mac`で本当に動かせないのか再度環境構築試してみる。
+- 上記記載あるが以下の手順にエラー
+
+#### `conda`を使用する方法(環境構築はできた方法-Intel Macでの動作は確認した。)
+- 実行場所は、`rppg-toolbox`の`top dir`
+- 前提として`homebrew`が入っていること。
+- 環境を汚したくないので、`rppg-toolbox`とは少し異なる方法を採用している。
+```:bash
+# miniforgeのinstall
+$brew install miniforge
+# condaのバージョン確認(installできてるかの確認でもある)
+$conda --version
+# 自分の出力はconda 24.3.0だった。
+```
+- STEP 1: `bash setup.sh` の分解した内部コマンドを実施。
+
+```:bash
+# 関連づけられているcondaがある場合に備えて紐付けを解除するコマンド
+$conda remove --name rppg-toolbox --all -y
+# 必要なライブラリ等のinstall
+# setup.shにはcudatoolkit=10.2の記載があるがGPUないので削除してコマンド使用
+# gpuがないpc用コマンド
+$conda create -n rppg-toolbox python=3.8 pytorch=1.12.1 torchvision=0.13.1 torchaudio=0.12.1 cpuonly -c pytorch -q -y
+```
+- 自動で`conda`起動されたくないので、手動アクティベート方法を採用(環境汚れるため)
+```:bash
+# condaのinstall先を探す
+$conda info
+# base environmentのpathを使用する
+$source ${base environment output path}/bin/activate
+```
+- 上記のコマンドをまとめた(出力を使用して自動的にアクティベートするコマンド)
+```:bash
+$source $(conda info | grep 'base environment' | awk '{print $4}')/bin/activate
+```
+- `conda`のアクティベート
+```:bash
+$conda activate rppg-toolbox
+```
+- 必要ライブラリの`install`
+```:bash
+$pip install -r requirements.txt
+```
+- 実行
+- 上記までの修正を行い、以下のコマンドを実施すると出力が得られた。
+```:python
+$python main.py --config_file ./configs/infer_configs/PURE_UBFC-PHYS_DEEPPHYS_BASIC.yaml
+```
+- エラーメッセージ
+```:bash
+(rppg-toolbox) takuma@ rPPG-Toolbox %python main.py --config_file ./configs/infer_configs/PURE_UBFC-PHYS_DEEPPHYS_BASIC.yaml
+zsh: illegal hardware instruction  python main.py --config_file 
+```
+- LLMに権限変更を提案されたので実施。
+```:bash
+chmod +x main.py 
+```
+- 関係なかった。
+- 以下を実施。
+[M1のMACのtensorflowでzsh illegal hardwareが出る話 2020/12](https://qiita.com/ShinnnosukeNakamura/items/de8e1b79d3d04e3cc730)
+- ダメだった。
+- やっぱりうまくいかない。`zsh: illegal hardware instruction  python main.py --config_file `で死ぬ。
+- 処理時間を記録する。
+  - `python main.py --config_file ./configs/infer_configs/PURE_UBFC-PHYS_DEEPPHYS_BASIC.yaml`
+  - `backend:HC`
+  - `Function: preprocess_dataset, Time: 353.5685 seconds`
+  - 推論:`Testing took 142.29 seconds.`
+  - 1フレームあたり0.1s程度時間がかかっている。
+- SSDの消費は5GBの動画で20GBほど消費していた。
+  - `python main.py --config_file ./configs/infer_configs/PURE_UBFC-PHYS_DEEPPHYS_BASIC.yaml`
+  - `backend:RF`
+  - `Function: preprocess_dataset, Time: 534.7847 seconds`
+  - 推論:`Testing took 143.94 seconds.`
+- `python main.py --config_file ./configs/infer_configs/PURE_Olive-VPPG_DEEPPHYS_BASIC.yaml`
+
+- `Olive-VPPG`の出力を行う。
+- `run_rppg_toolbox.sh`という`sh`ファイルで連続実行を行う。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -747,3 +848,8 @@ https://github.com/ubicomplab/rPPG-Toolbox/blob/main/configs/infer_configs/PURE_
 
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+
+
+
+
+

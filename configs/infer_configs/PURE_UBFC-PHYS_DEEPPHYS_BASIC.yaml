@@ -25,7 +25,7 @@ TEST:
       #TASK_LIST: []
     FS: 35
     DATASET: UBFC-PHYS
-    DO_PREPROCESS: true                  # if first time, should be true
+    DO_PREPROCESS: false                  # if first time, should be true
     DATA_FORMAT: NDCHW
     #DATA_PATH: "/gscratch/ubicomp/xliu0/data3/mnt/Datasets/UBFC-PHYS/RawData"          # need to be updated
     #CACHED_PATH: "/gscratch/ubicomp/xliu0/data3/mnt/Datasets/rppg_toolbox/PreprocessedData"    # Processed dataset save path, need to be updated

@@ -24,7 +24,8 @@ import pandas as pd
 from torch.utils.data import Dataset
 from tqdm import tqdm
 from retinaface import RetinaFace   # Source code: https://github.com/serengil/retinaface
-
+import time
+import tracemalloc
 
 class BaseLoader(Dataset):
     """The base class for data loading based on pytorch Dataset.
@@ -32,7 +33,6 @@ class BaseLoader(Dataset):
     The dataloader supports both providing data for pytorch training and common data-preprocessing methods,
     including reading files, resizing each frame, chunking, and video-signal synchronization.
     """
-
     @staticmethod
     def add_data_loader_args(parser):
         """Adds arguments to parser for training process"""
@@ -68,10 +68,10 @@ class BaseLoader(Dataset):
             self.raw_data_dirs = self.get_raw_data(self.raw_data_path)
             self.preprocess_dataset(self.raw_data_dirs, config_data.PREPROCESS, config_data.BEGIN, config_data.END)
         else:
-            print("===self.cached_path===")
-            print(self.cached_path)
-            print("===self.file_list_path===")
-            print(self.file_list_path)
+            #print("===self.cached_path===")
+            #print(self.cached_path)
+            #print("===self.file_list_path===")
+            #print(self.file_list_path)
             if not os.path.exists(self.cached_path):
                 print('CACHED_PATH:', self.cached_path)
                 raise ValueError(self.dataset_name,
@@ -82,8 +82,8 @@ class BaseLoader(Dataset):
                 self.build_file_list_retroactive(self.raw_data_dirs, config_data.BEGIN, config_data.END)
                 print('File list generated.', end='\n\n')
 
-            print("===self===")
-            print(self)
+            #print("===self===")
+            #print(self)
             self.load_preprocessed_data()
         print('Cached Data Path', self.cached_path, end='\n\n')
         print('File List Path', self.file_list_path)
@@ -122,7 +122,36 @@ class BaseLoader(Dataset):
         # the chunk_id for example would be 0
         chunk_id = item_path_filename[split_idx + 6:].split('.')[0]
         return data, label, filename, chunk_id
+    
+    def time_it(func=None):
+        enable_timing=True
+        enable_memory=False
+        def decorator(func):
+            def wrapper(*args, **kwargs):
+                if enable_timing:
+                    start = time.time()
+                if enable_memory and not tracemalloc.is_tracing():
+                    tracemalloc.start()  # まだトレースが開始されていない場合は開始する
+                result = func(*args, **kwargs)
+                if enable_memory and tracemalloc.is_tracing():
+                    snapshot = tracemalloc.take_snapshot()
+                    top_stats = snapshot.statistics('lineno')
+                    print("[ Top 10 ]")
+                    for stat in top_stats[:10]:
+                        print(stat)
+                    tracemalloc.stop()  # トレースを停止する
+                if enable_timing:
+                    end = time.time()
+                    print(f"Function: {func.__name__}, Time: {end - start:.4f} seconds")
+                return result
+            return wrapper
 
+        if func is None:
+            return decorator
+        else:
+            return decorator(func)
+    
+    @time_it
     def get_raw_data(self, raw_data_path):
         """Returns raw data directories under the path.
 
@@ -131,6 +160,7 @@ class BaseLoader(Dataset):
         """
         raise Exception("'get_raw_data' Not Implemented")
 
+    @time_it
     def split_raw_data(self, data_dirs, begin, end):
         """Returns a subset of data dirs, split with begin and end values, 
         and ensures no overlapping subjects between splits.
@@ -142,6 +172,7 @@ class BaseLoader(Dataset):
         """
         raise Exception("'split_raw_data' Not Implemented")
 
+    @time_it
     def read_npy_video(self, video_file):
         """Reads a video file in the numpy format (.npy), returns frames(T,H,W,3)"""
         frames = np.load(video_file[0])
@@ -154,6 +185,7 @@ class BaseLoader(Dataset):
             + f'Received frames of type {frames.dtype} and range {np.min(frames)} to {np.max(frames)}.')
         return np.asarray(processed_frames)
 
+    @time_it
     def generate_pos_psuedo_labels(self, frames, fs=30):
         """Generated POS-based PPG Psuedo Labels For Training
 
@@ -201,6 +233,7 @@ class BaseLoader(Dataset):
 
         return np.array(env_norm_bvp) # return POS psuedo labels
     
+    @time_it
     def preprocess_dataset(self, data_dirs, config_preprocess, begin, end):
         """Parses and preprocesses all the raw data based on split.
 
@@ -217,6 +250,7 @@ class BaseLoader(Dataset):
         self.load_preprocessed_data()  # load all data and corresponding labels (sorted for consistency)
         print("Total Number of raw files preprocessed:", len(data_dirs_split), end='\n\n')
 
+    @time_it
     def preprocess(self, frames, bvps, config_preprocess):
         """Preprocesses a pair of data.
 
@@ -290,6 +324,7 @@ class BaseLoader(Dataset):
 
         return frames_clips, bvps_clips
 
+    @time_it
     def face_detection(self, frame, backend, use_larger_box=False, larger_box_coef=1.0):
         """Face detection on a single frame.
 
@@ -303,8 +338,8 @@ class BaseLoader(Dataset):
         """
 
         #print(frame)
-        print("===frame.shape===")
-        print(frame.shape)
+        #print("===frame.shape===")
+        #print(frame.shape)
         #sys.exit("処理停止")
 
         if backend == "HC":
@@ -374,11 +409,12 @@ class BaseLoader(Dataset):
             face_box_coor[2] = larger_box_coef * face_box_coor[2]
             face_box_coor[3] = larger_box_coef * face_box_coor[3]
 
-        print("===face_box_coor===")
-        print(face_box_coor)
+        #print("===face_box_coor===")
+        #print(face_box_coor)
 
         return face_box_coor
 
+    @time_it
     def crop_face_resize(self, frames, use_face_detection, backend, use_larger_box, larger_box_coef, use_dynamic_detection, 
                          detection_freq, use_median_box, width, height):
         """Crop face and resize frames.
@@ -406,14 +442,14 @@ class BaseLoader(Dataset):
         face_region_all = []
         # Perform face detection by num_dynamic_det" times.
         for idx in range(num_dynamic_det):
-            print("===use_face_detection===")
+            #print("===use_face_detection===")
             #print(use_face_detection)
             if use_face_detection:
-                print("===True face_region_all add object===")
+                #print("===True face_region_all add object===")
                 #print(self.face_detection(frames[detection_freq * idx], backend, use_larger_box, larger_box_coef))
                 face_region_all.append(self.face_detection(frames[detection_freq * idx], backend, use_larger_box, larger_box_coef))
             else:
-                print("===False face_region_all add object===")
+                #print("===False face_region_all add object===")
                 #print([0, 0, frames.shape[1], frames.shape[2]])
                 face_region_all.append([0, 0, frames.shape[1], frames.shape[2]])
         face_region_all = np.asarray(face_region_all, dtype='int')
@@ -460,6 +496,7 @@ class BaseLoader(Dataset):
 
         return resized_frames
 
+    @time_it
     def chunk(self, frames, bvps, chunk_length):
         """Chunk the data into small chunks.
 
@@ -477,6 +514,7 @@ class BaseLoader(Dataset):
         bvps_clips = [bvps[i * chunk_length:(i + 1) * chunk_length] for i in range(clip_num)]
         return np.array(frames_clips), np.array(bvps_clips)
 
+    @time_it
     def save(self, frames_clips, bvps_clips, filename):
         """Save all the chunked data.
 
@@ -502,6 +540,7 @@ class BaseLoader(Dataset):
             count += 1
         return count
 
+    @time_it
     def save_multi_process(self, frames_clips, bvps_clips, filename):
         """Save all the chunked data with multi-thread processing.
 
@@ -518,21 +557,29 @@ class BaseLoader(Dataset):
         count = 0
         input_path_name_list = []
         label_path_name_list = []
+
+        # 情報をターミナルに出すかどうか
+        print_bool = False
+
         for i in range(len(bvps_clips)):
             assert (len(self.inputs) == len(self.labels))
-            print("===filename===")
-            print(filename)
-            print("===count===")
-            print(count)
-            print("===self.cached_path===")
-            print(self.cached_path)
             # ここ処理変えたので他のでも動くかテスト必要
             input_path_name = self.cached_path + os.sep + "{0}_input{1}.npy".format(os.path.basename(filename), str(count))
             label_path_name = self.cached_path + os.sep + "{0}_label{1}.npy".format(os.path.basename(filename), str(count))
-            print("===input_path_name===")
-            print(input_path_name)
-            print("===label_path_name===")
-            print(label_path_name)
+            
+            if print_bool == True:
+                print("===filename===")
+                print(filename)
+                print("===count===")
+                print(count)
+                print("===self.cached_path===")
+                print(self.cached_path)                
+                print("===input_path_name===")
+                print(input_path_name)
+                print("===label_path_name===")
+                print(label_path_name)
+
+
             input_path_name_list.append(input_path_name)
             label_path_name_list.append(label_path_name)
             np.save(input_path_name, frames_clips[i])
@@ -540,7 +587,8 @@ class BaseLoader(Dataset):
             count += 1
         return input_path_name_list, label_path_name_list
 
-    def multi_process_manager(self, data_dirs, config_preprocess, multi_process_quota=8):
+    @time_it
+    def multi_process_manager(self, data_dirs, config_preprocess, multi_process_quota=2):
         """Allocate dataset preprocessing across multiple processes.
 
         Args:
@@ -587,6 +635,7 @@ class BaseLoader(Dataset):
 
         return file_list_dict
 
+    @time_it
     def build_file_list(self, file_list_dict):
         """Build a list of files used by the dataloader for the data split. Eg. list of files used for 
         train / val / test. Also saves the list to a .csv file.
@@ -608,6 +657,7 @@ class BaseLoader(Dataset):
         os.makedirs(os.path.dirname(self.file_list_path), exist_ok=True)
         file_list_df.to_csv(self.file_list_path)  # save file list to .csv
 
+    @time_it
     def build_file_list_retroactive(self, data_dirs, begin, end):
         """ If a file list has not already been generated for a specific data split build a list of files 
         used by the dataloader for the data split. Eg. list of files used for 
@@ -644,6 +694,7 @@ class BaseLoader(Dataset):
         os.makedirs(os.path.dirname(self.file_list_path), exist_ok=True)
         file_list_df.to_csv(self.file_list_path)  # save file list to .csv
 
+    @time_it
     def load_preprocessed_data(self):
         """ Loads the preprocessed data listed in the file list.
 
