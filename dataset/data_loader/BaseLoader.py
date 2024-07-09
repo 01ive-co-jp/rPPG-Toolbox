@@ -17,6 +17,7 @@ from unsupervised_methods import utils
 import math
 from multiprocessing import Pool, Process, Value, Array, Manager
 
+import torch
 import sys
 import cv2
 import numpy as np
@@ -366,6 +367,17 @@ class BaseLoader(Dataset):
                 face_box_coor = face_zone[0]
         elif backend == "RF":
             # Use a TensorFlow-based RetinaFace implementation for face detection
+            """変更箇所"""
+            # GPUが利用可能かどうかを確認
+            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+            # frameをデバイスに移動
+            frame = torch.from_numpy(frame).to(device)
+
+            # detectorもデバイスに移動（必要な場合）
+            detector = detector.to(device)
+            """変更箇所"""
+
             # This utilizes both the CPU and GPU
             res = RetinaFace.detect_faces(frame)
 

@@ -10,6 +10,8 @@ from unsupervised_methods.methods.POS_WANG import *
 from unsupervised_methods.methods.OMIT import *
 from tqdm import tqdm
 from evaluation.BlandAltmanPy import BlandAltman
+from neural_methods.trainer.BaseTrainer import BaseTrainer
+import torch
 
 def unsupervised_predict(config, data_loader, method_name):
     """ Model evaluation on the testing dataset."""
@@ -22,6 +24,10 @@ def unsupervised_predict(config, data_loader, method_name):
     gt_hr_fft_all = []
     SNR_all = []
     MACC_all = []
+
+    predictions = {}
+    labels = {}
+
     sbar = tqdm(data_loader["unsupervised"], ncols=80)
     for _, test_batch in enumerate(sbar):
         batch_size = test_batch[0].shape[0]
@@ -43,6 +49,20 @@ def unsupervised_predict(config, data_loader, method_name):
                 BVP = OMIT(data_input)
             else:
                 raise ValueError("unsupervised method name wrong!")
+
+            """追加code"""
+            # subj_indexとsort_indexを取得（これらの情報がtest_batchに含まれていると仮定）
+            subj_index = test_batch[2][idx]
+            sort_index = int(test_batch[3][idx])
+
+            # predictionsとlabelsの辞書を構築
+            if subj_index not in predictions:
+                predictions[subj_index] = {}
+                labels[subj_index] = {}
+            
+            predictions[subj_index][sort_index] = torch.from_numpy(BVP)
+            labels[subj_index][sort_index] = torch.from_numpy(labels_input)
+            """追加code"""
 
             video_frame_size = test_batch[0].shape[1]
             if config.INFERENCE.EVALUATION_WINDOW.USE_SMALLER_WINDOW:
@@ -83,6 +103,10 @@ def unsupervised_predict(config, data_loader, method_name):
         filename_id = method_name + "_" + config.UNSUPERVISED.DATA.DATASET
     else:
         raise ValueError('unsupervised_predictor.py evaluation only supports unsupervised_method!')
+
+    # 結果を保存
+    base_trainer = BaseTrainer()
+    base_trainer.save_test_outputs(predictions, labels, config)
 
     if config.INFERENCE.EVALUATION_METHOD == "peak detection":
         predict_hr_peak_all = np.array(predict_hr_peak_all)

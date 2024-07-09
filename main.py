@@ -11,6 +11,9 @@ from dataset import data_loader
 from neural_methods import trainer
 from unsupervised_methods.unsupervised_predictor import unsupervised_predict
 from torch.utils.data import DataLoader
+import sys
+
+print(sys.executable)
 
 RANDOM_SEED = 100
 torch.manual_seed(RANDOM_SEED)
@@ -100,11 +103,12 @@ def test(config, data_loader_dict):
         model_trainer = trainer.PhysFormerTrainer.PhysFormerTrainer(config, data_loader_dict)
     else:
         raise ValueError('Your Model is Not Supported  Yet!')
-    model_trainer.test(data_loader_dict)
+    #model_trainer.test(data_loader_dict)
 
     start_time = time.time()  # 処理時間計測開始
     model_trainer.test(data_loader_dict)
     end_time = time.time()  # 処理時間計測終了
+
     print(f"Testing took {end_time - start_time:.2f} seconds.")  # 処理時間を表示
 
 

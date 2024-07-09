@@ -1,3 +1,4 @@
+# mac用
 #!/bin/bash
 
 source $(conda info | grep 'base environment' | awk '{print $4}')/bin/activate
