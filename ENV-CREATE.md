@@ -764,7 +764,8 @@ chmod +x main.py
 - 探した結果`pickle`の書き出し処理箇所は`./neural_methods/trainer/BaseTrainer.py`の` def save_test_outputs`に存在する。
 - 呼び出しは`./neural_methods/trainer/PhysFormerTrainer.py`等である。
 - `unsupervised_methods/unsupervised_predictor.py`を修正。
-
+- `config.py`を修正。
+- `neural_methods/trainer/UnsupervisedTrainer.py`を追加。
 
 
 

@@ -558,12 +558,15 @@ def update_config(config, args):
 
     # Establish the directory to hold outputs saved during testing inside the
     # configured log directory (runs/exp by default)
+    """変更箇所"""
     if config.TOOLBOX_MODE == 'train_and_test' or config.TOOLBOX_MODE == 'only_test':
         config.TEST.OUTPUT_SAVE_DIR = os.path.join(config.LOG.PATH, config.TEST.DATA.EXP_DATA_NAME, 'saved_test_outputs')
     elif config.TOOLBOX_MODE == 'unsupervised_method':
         config.UNSUPERVISED.OUTPUT_SAVE_DIR = os.path.join(config.LOG.PATH, config.UNSUPERVISED.DATA.EXP_DATA_NAME, 'saved_outputs')
+        os.makedirs(config.UNSUPERVISED.OUTPUT_SAVE_DIR, exist_ok=True)
     else:
         raise ValueError('TOOLBOX_MODE only supports train_and_test, only_test, or unsupervised_method!')
+    """変更箇所"""
 
     config.freeze()
     return

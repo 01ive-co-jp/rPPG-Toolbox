@@ -10,8 +10,10 @@ from unsupervised_methods.methods.POS_WANG import *
 from unsupervised_methods.methods.OMIT import *
 from tqdm import tqdm
 from evaluation.BlandAltmanPy import BlandAltman
-from neural_methods.trainer.BaseTrainer import BaseTrainer
+from neural_methods.trainer.UnsupervisedTrainer import UnsupervisedTrainer
 import torch
+import os
+import csv
 
 def unsupervised_predict(config, data_loader, method_name):
     """ Model evaluation on the testing dataset."""
@@ -50,6 +52,20 @@ def unsupervised_predict(config, data_loader, method_name):
             else:
                 raise ValueError("unsupervised method name wrong!")
 
+            """
+            # Define the output directory and filename
+            output_dir = config.UNSUPERVISED.OUTPUT_SAVE_DIR if hasattr(config.UNSUPERVISED, 'OUTPUT_SAVE_DIR') else ''
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
+            output_filename = os.path.join(output_dir, f"{method_name}_BVP.csv")
+
+            # Write BVP to CSV file
+            with open(output_filename, mode='a', newline='') as file:
+                writer = csv.writer(file)
+                for value in BVP:
+                    writer.writerow([value])
+            """
+
             """追加code"""
             # subj_indexとsort_indexを取得（これらの情報がtest_batchに含まれていると仮定）
             subj_index = test_batch[2][idx]
@@ -60,8 +76,8 @@ def unsupervised_predict(config, data_loader, method_name):
                 predictions[subj_index] = {}
                 labels[subj_index] = {}
             
-            predictions[subj_index][sort_index] = torch.from_numpy(BVP)
-            labels[subj_index][sort_index] = torch.from_numpy(labels_input)
+            predictions[subj_index][sort_index] = torch.from_numpy(BVP.copy())
+            labels[subj_index][sort_index] = torch.from_numpy(labels_input.copy())
             """追加code"""
 
             video_frame_size = test_batch[0].shape[1]
@@ -104,9 +120,11 @@ def unsupervised_predict(config, data_loader, method_name):
     else:
         raise ValueError('unsupervised_predictor.py evaluation only supports unsupervised_method!')
 
+    """追加code"""
     # 結果を保存
-    base_trainer = BaseTrainer()
-    base_trainer.save_test_outputs(predictions, labels, config)
+    unsupervised_trainer = UnsupervisedTrainer()
+    unsupervised_trainer.save_test_outputs(predictions, labels, config, method_name)
+    """追加code"""
 
     if config.INFERENCE.EVALUATION_METHOD == "peak detection":
         predict_hr_peak_all = np.array(predict_hr_peak_all)
